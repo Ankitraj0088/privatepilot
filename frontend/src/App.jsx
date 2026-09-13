@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-const API_URL = "http://localhost:8000";
+const API_URL = "https://privatepilot.onrender.com";
 
 function installExtensionBridge() {
   window.addEventListener("message", (event) => {
