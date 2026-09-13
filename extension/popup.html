@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>PrivatePilot</title>
+  <style>
+    body {
+      width: 320px;
+      padding: 18px;
+      font-family: system-ui, sans-serif;
+    }
+
+    h2 {
+      margin-top: 0;
+    }
+
+    textarea {
+      width: 100%;
+      height: 90px;
+      box-sizing: border-box;
+      resize: vertical;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 10px;
+      padding: 10px;
+      cursor: pointer;
+    }
+
+    #status {
+      margin-top: 12px;
+      font-size: 13px;
+    }
+  </style>
+</head>
+
+<body>
+  <h2>PrivatePilot</h2>
+
+  <textarea
+    id="task"
+    placeholder="What should your browser do?"
+  ></textarea>
+
+  <button id="run">Run task</button>
+
+  <div id="status">Ready.</div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
