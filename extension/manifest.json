@@ -10,7 +10,7 @@
     "tabs"
   ],
   "host_permissions": [
-    "http://localhost:8000/*"
+    "https://privatepilot.onrender.com/*"
   ],
   "action": {
     "default_title": "PrivatePilot",
@@ -21,8 +21,12 @@
   },
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["content.js"],
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content.js"
+      ],
       "run_at": "document_idle"
     }
   ]

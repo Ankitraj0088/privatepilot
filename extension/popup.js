@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:8000";
+const API_URL = "https://privatepilot.onrender.com";
 
 const taskInput = document.getElementById("task");
 const runButton = document.getElementById("run");
