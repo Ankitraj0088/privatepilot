@@ -40,7 +40,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
-        "http://127.0.0.1:5173"
+        "http://127.0.0.1:5173",
+        "https://privatepilot-e5r8ibpib-hear-me-out1.vercel.app"
     ],
     allow_origin_regex=r"https?://(localhost|127\\.0\\.0\\.1)(:\\d+)?",
     allow_credentials=True,
