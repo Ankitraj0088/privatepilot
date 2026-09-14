@@ -509,13 +509,6 @@ SUPPORTED_ACTIONS = {
 
 
 def build_task_plan(task: str) -> dict:
-    """
-    Convert a natural-language browser task into executable
-    browser actions.
-
-    V1 is deterministic and local.
-    """
-
     text = task.strip()
 
     if not text:
@@ -525,27 +518,62 @@ def build_task_plan(task: str) -> dict:
             "status": "invalid"
         }
 
-    lower = text.lower()
+    lower = text.lower().strip()
     actions = []
 
-    # ---------------------------------------------------------
-    # YouTube search
-    # ---------------------------------------------------------
+    known_sites = {
+        "flipkart": "https://www.flipkart.com",
+        "amazon": "https://www.amazon.in",
+        "amazon india": "https://www.amazon.in",
+        "google": "https://www.google.com",
+        "youtube": "https://www.youtube.com",
+        "instagram": "https://www.instagram.com",
+        "facebook": "https://www.facebook.com",
+        "wikipedia": "https://www.wikipedia.org",
+        "reddit": "https://www.reddit.com",
+        "linkedin": "https://www.linkedin.com"
+    }
 
-    if "youtube" in lower and (
-        "search" in lower
-        or "find" in lower
-        or "look for" in lower
+    # OPEN / VISIT / GO TO
+    prefixes = ("open ", "visit ", "go to ", "navigate to ")
+
+    if lower.startswith(prefixes):
+        site = text
+
+        for prefix in prefixes:
+            if lower.startswith(prefix):
+                site = text[len(prefix):].strip()
+                break
+
+        site_key = site.lower().strip()
+
+        if site_key in known_sites:
+            url = known_sites[site_key]
+        elif site.startswith(("http://", "https://")):
+            url = site.rstrip(".,)")
+        else:
+            url = "https://" + site.rstrip(".,)")
+
+        actions.append({
+            "type": "navigate",
+            "url": url
+        })
+
+    # YOUTUBE SEARCH
+    elif "youtube" in lower and any(
+        x in lower for x in ("search", "find", "look for")
     ):
         query = text
 
-        for phrase in [
+        phrases = (
             "search youtube for",
             "search youtube",
             "find on youtube",
             "find youtube",
             "look for on youtube"
-        ]:
+        )
+
+        for phrase in phrases:
             if phrase in lower:
                 index = lower.index(phrase) + len(phrase)
                 query = text[index:].strip()
@@ -570,22 +598,20 @@ def build_task_plan(task: str) -> dict:
             }
         ])
 
-    # ---------------------------------------------------------
-    # Google search
-    # ---------------------------------------------------------
-
-    elif "google" in lower and (
-        "search" in lower
-        or "find" in lower
+    # GOOGLE SEARCH
+    elif "google" in lower and any(
+        x in lower for x in ("search", "find")
     ):
         query = text
 
-        for phrase in [
+        phrases = (
             "search google for",
             "search google",
             "find on google",
             "find google"
-        ]:
+        )
+
+        for phrase in phrases:
             if phrase in lower:
                 index = lower.index(phrase) + len(phrase)
                 query = text[index:].strip()
@@ -610,35 +636,78 @@ def build_task_plan(task: str) -> dict:
             }
         ])
 
-    # ---------------------------------------------------------
-    # Explicit URL
-    # ---------------------------------------------------------
-
+    # EXPLICIT URL
     else:
-        for word in text.split():
-            if word.startswith("http://") or word.startswith("https://"):
-                actions.append({
-                    "type": "navigate",
-                    "url": word.rstrip(".,)")
-                })
-                break
+        url_match = re.search(
+            r"https?://[^\s]+",
+            text
+        )
 
-        # Generic page extraction
-        if any(x in lower for x in [
+        if url_match:
+            actions.append({
+                "type": "navigate",
+                "url": url_match.group(0).rstrip(".,)")
+            })
+
+        # Generic SEARCH
+        elif lower.startswith("search "):
+            query = text[7:].strip()
+
+            actions.extend([
+                {
+                    "type": "navigate",
+                    "url": "https://www.google.com"
+                },
+                {
+                    "type": "wait",
+                    "seconds": 2
+                },
+                {
+                    "type": "type",
+                    "text": query
+                },
+                {
+                    "type": "click",
+                    "text": "Google Search"
+                }
+            ])
+
+        # SCROLL
+        elif "scroll" in lower:
+            actions.append({
+                "type": "scroll"
+            })
+
+        # CLICK
+        elif lower.startswith("click "):
+            target = text[6:].strip()
+
+            actions.append({
+                "type": "click",
+                "text": target
+            })
+
+        # TYPE
+        elif lower.startswith("type "):
+            value = text[5:].strip()
+
+            actions.append({
+                "type": "type",
+                "text": value
+            })
+
+        # EXTRACT / INFORMATION
+        elif any(x in lower for x in (
             "summarize",
             "summary",
             "extract",
             "find information",
             "information about"
-        ]):
+        )):
             actions.append({
                 "type": "extract",
-                "target": "relevant page information"
+                "target": text
             })
-
-    # ---------------------------------------------------------
-    # Fallback
-    # ---------------------------------------------------------
 
     if not actions:
         actions.append({
